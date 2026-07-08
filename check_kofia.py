@@ -12,12 +12,13 @@ def get_latest_post():
     soup = BeautifulSoup(res.text, "html.parser")
     rows = soup.select("table tbody tr")
     for row in rows:
-        num_td = row.select_one("td.first")
-        title_a = row.select_one("td a")
-        if num_td and title_a:
-            num = num_td.get_text(strip=True)
-            title = title_a.get_text(strip=True)
-            return num, title
+        cols = row.find_all("td")
+        if len(cols) >= 2:
+            num = cols[0].get_text(strip=True)
+            title_a = cols[1].find("a")
+            if num.isdigit() and title_a:
+                title = title_a.get_text(strip=True)
+                return num, title
     return None, None
 
 def send_telegram(message):
@@ -25,16 +26,21 @@ def send_telegram(message):
     requests.post(url, data={"chat_id": CHAT_ID, "text": message})
 
 num, title = get_latest_post()
+print(f"최신 글: {num} - {title}")
+
 if num:
     try:
         with open(LAST_ID_FILE, "r") as f:
             last = f.read().strip()
     except:
         last = ""
+    
+    print(f"저장된 마지막 ID: {last}")
+    
     if num != last:
         send_telegram(f"📢 KOFIA 새 글!\n{title}\nhttps://www.kofia.or.kr/brd/m_212/list.do")
         with open(LAST_ID_FILE, "w") as f:
             f.write(num)
-        print(f"새 글 발견: {title}")
+        print(f"새 글 발견 및 저장: {num}")
     else:
         print("새 글 없음")
