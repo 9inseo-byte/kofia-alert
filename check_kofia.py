@@ -17,15 +17,14 @@ def get_latest_post():
         if num_td and title_a:
             num = num_td.get_text(strip=True)
             title = title_a.get_text(strip=True)
-            link = "https://www.kofia.or.kr" + title_a["href"]
-            return num, title, link
-    return None, None, None
+            return num, title
+    return None, None
 
 def send_telegram(message):
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
     requests.post(url, data={"chat_id": CHAT_ID, "text": message})
 
-num, title, link = get_latest_post()
+num, title = get_latest_post()
 if num:
     try:
         with open(LAST_ID_FILE, "r") as f:
@@ -33,7 +32,7 @@ if num:
     except:
         last = ""
     if num != last:
-        send_telegram(f"📢 KOFIA 새 글!\n{title}\n{link}")
+        send_telegram(f"📢 KOFIA 새 글!\n{title}\nhttps://www.kofia.or.kr/brd/m_212/list.do")
         with open(LAST_ID_FILE, "w") as f:
             f.write(num)
         print(f"새 글 발견: {title}")
