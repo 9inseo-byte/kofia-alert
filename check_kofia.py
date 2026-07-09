@@ -12,13 +12,17 @@ def get_latest_post():
     soup = BeautifulSoup(res.text, "html.parser")
     rows = soup.select("table tbody tr")
     for row in rows:
-        cols = row.find_all("td")
-        if len(cols) >= 2:
-            num = cols[0].get_text(strip=True)
-            title_a = cols[1].find("a")
-            if num.isdigit() and title_a:
-                title = title_a.get_text(strip=True)
-                return num, title
+        tds = row.find_all("td")
+        for i, td in enumerate(tds):
+            text = td.get_text(strip=True)
+            if text.isdigit():
+                # 숫자 td 찾으면 그 다음 td에서 링크/제목 찾기
+                for j in range(i+1, len(tds)):
+                    a = tds[j].find("a")
+                    if a:
+                        title = a.get_text(strip=True)
+                        if title:
+                            return text, title
     return None, None
 
 def send_telegram(message):
